@@ -1,0 +1,169 @@
+[
+{
+	"uri": "/vi/",
+	"title": "Xây dựng PaaS có tính sẵn sàng cao với dịch vụ Beanstalk cho ứng dụng web",
+	"tags": [],
+	"description": "",
+	"content": "Xây dựng PaaS có tính sẵn sàng cao với dịch vụ Beanstalk cho ứng dụng web Overall Trong bài lab này, bạn sẽ học cách triển khai PaaS có tính sẵn sàng cao cho ứng dụng web bằng cách sử dụng Beanstalk, CloudFront, S3, Certificate Manager, Multi-AZ RDS, Amazon MQ và Elasticache Cluster. Nội dung Giới thiệu Chuẩn bị Thiết lập cụm Multi-AZ RDS Thiết lập cụm Memcache Thiết lập cụm Amazon MQ Tạo và cấu hình Beanstalk Định cấu hình CloudFront Dọn dẹp tài nguyên "
+},
+{
+	"uri": "/vi/2-prerequiste/2.1-createec2/",
+	"title": "Chuẩn bị VPC",
+	"tags": [],
+	"description": "",
+	"content": "Ở bước này, chúng ta cần tạo ra 1 VPC với 6 subnets, với 3 subnet đầu là public, còn lại là private subnet. Tổng quang kiến trúc sau khi hoàn thành sẽ như bên dưới:\nĐể xem cách tạo EC2 và VPC với public/private subnets, có thể xem tại:\nAbout Amazon EC2 Works with Amazon VPC Content Tạo VPC Tạo Public \u0026amp; Private Subnets Tạo Internet Gateway \u0026amp; Route Table Review "
+},
+{
+	"uri": "/vi/1-introduce/",
+	"title": "Giới thiệu",
+	"tags": [],
+	"description": "",
+	"content": "Platform as a Service (PaaS) được sử dụng để loại bỏ nhu cầu quản lý cơ sở hạ tầng cơ bản, thường là phần cứng và hệ điều hành, của tổ chức. Thay vào đó, nó cho phép bạn tập trung vào triển khai và quản lý ứng dụng của mình. Điều này cải thiện hiệu suất vì bạn không cần lo lắng về các nhiệm vụ như mua sắm tài nguyên, lập kế hoạch năng lực, bảo trì phần mềm, cập nhật hoặc bất kỳ công việc nặng nề nào khác liên quan đến quản lý ứng dụng. Do đó, trong bài thực hành này, chúng ta sẽ tiến hành triển khai một ứng dụng web bằng cách sử dụng Elastic Beanstalk, đây là ví dụ tốt nhất để thể hiện các tính năng của PaaS.\nAmazon CloudFront là một hình thức Content Delivery Network (CDN) giúp tăng tốc quá trình tải trang web tĩnh hoặc động (html, css, javascript) đến người dùng của bạn. CloudFront phân phối nội dung của bạn trên toàn cầu thông qua các trung tâm dữ liệu được gọi là Edge locations.\nIncrease the performance of reading data by caching in Edge Location. Tăng hiệu suất trong việc dọc dữ liệu băng cách cache ở Edge Location. Hiện tại có khoảng 216 Edge Location trên toàn cầu. Hơn nữa, chúng tôi muốn đảm bảo tính sẵn có cao và thời gian phản hồi nhanh cho người dùng. Vì vậy, chúng tôi đã triển khai các cụm Multi-AZ RDS, Amazon MQ và Elasticache trong bài thực hành này. Trong khi đó, dịch vụ Certificate Manager được áp dụng để cung cấp, quản lý và triển khai chứng chỉ SSL/TLS công khai và riêng tư để sử dụng với các dịch vụ của AWS và các nguồn tài nguyên nội bộ kết nối của bạn.\n"
+},
+{
+	"uri": "/vi/3-accessibilitytoinstances/3.2-private-instance/3.2.1-setuprdscluster/",
+	"title": "Kết nối đến máy chủ Public",
+	"tags": [],
+	"description": "",
+	"content": "\nTruy cập vào giao diện quản trị của dịch vụ EC2. Click chọn Public Linux Instance. Click Actions. Click Security. Click Modify IAM role. Tại trang Modify IAM role. Click chọn SSM-Role. Click Save. Bạn sẽ cần chờ khoảng 10 phút trước khi thực hiện bước tiếp theo. Thời gian này EC2 instance của chúng ta sẽ tự động đăng ký với Session Manager.\nTruy cập vào giao diện quản trị của dịch vụ AWS Systems Manager Kéo thanh trượt menu bên trái xuống dưới. Click Session Manager. Click Start Session. Sau đó chọn Public Linux Instance và click Start session để truy cập vào instance. Terminal sẽ xuất hiện trên trình duyệt. Kiểm tra với câu lệnh sudo tcpdump -nn port 22 và sudo tcpdump chúng ta sẽ thấy không có traffic của SSH mà chỉ có traffic HTTPS. Ở trên, chúng ta đã tạo kết nối vào public instance mà không cần mở cổng SSH 22, giúp cho việc bảo mật tốt hơn, tránh mọi sự tấn công tới cổng SSH.\nMột nhược điểm của cách làm trên là ta phải mở Security Group outbound ở cổng 443 ra ngoài internet. Vì là public instance nên có thể sẽ không vấn đề gì nhưng nếu bạn muốn bảo mật hơn nữa, bạn có thể khoá cổng 443 ra ngoài internet mà vẫn sử dụng được Session Manager. Chúng ta sẽ đi qua cách làm này ở phần private instance dưới đây.\nBạn có thể terminate để kết thúc session đang kết nối trước khi qua bước tiếp theo.\n"
+},
+{
+	"uri": "/vi/3-accessibilitytoinstances/3.2-private-instance/3.2.2-buildata/",
+	"title": "Kết nối đến máy chủ Public",
+	"tags": [],
+	"description": "",
+	"content": "\nTruy cập vào giao diện quản trị của dịch vụ EC2. Click chọn Public Linux Instance. Click Actions. Click Security. Click Modify IAM role. Tại trang Modify IAM role. Click chọn SSM-Role. Click Save. Bạn sẽ cần chờ khoảng 10 phút trước khi thực hiện bước tiếp theo. Thời gian này EC2 instance của chúng ta sẽ tự động đăng ký với Session Manager.\nTruy cập vào giao diện quản trị của dịch vụ AWS Systems Manager Kéo thanh trượt menu bên trái xuống dưới. Click Session Manager. Click Start Session. Sau đó chọn Public Linux Instance và click Start session để truy cập vào instance. Terminal sẽ xuất hiện trên trình duyệt. Kiểm tra với câu lệnh sudo tcpdump -nn port 22 và sudo tcpdump chúng ta sẽ thấy không có traffic của SSH mà chỉ có traffic HTTPS. Ở trên, chúng ta đã tạo kết nối vào public instance mà không cần mở cổng SSH 22, giúp cho việc bảo mật tốt hơn, tránh mọi sự tấn công tới cổng SSH.\nMột nhược điểm của cách làm trên là ta phải mở Security Group outbound ở cổng 443 ra ngoài internet. Vì là public instance nên có thể sẽ không vấn đề gì nhưng nếu bạn muốn bảo mật hơn nữa, bạn có thể khoá cổng 443 ra ngoài internet mà vẫn sử dụng được Session Manager. Chúng ta sẽ đi qua cách làm này ở phần private instance dưới đây.\nBạn có thể terminate để kết thúc session đang kết nối trước khi qua bước tiếp theo.\n"
+},
+{
+	"uri": "/vi/3-accessibilitytoinstances/3.1-public-instance/",
+	"title": "Tạo subnet &amp; parameter groups",
+	"tags": [],
+	"description": "",
+	"content": "Create subnet group Đi tới RDS Tại Amazon RDS dashboard\nClick Subnet groups section. Click Create DB subnet group. Tại Amazon RDS dashboard\nNhập rds-subnet-group in Name. Nhập rds-subnet-group in Description. Chọn fcj-workshop tại VPC. Chọn us-east-1a, us-east-1b, us-east-1c trong Availability Zones. Trong Subnets, chọn 3 private subnets. Click Create. Chọn Status Tạo parameter group Đi tới trang Pramater groups Click Create parameter group Trong Create parameter group\nChọn mysql8.0 trong Paramter group family. Chọn DB Cluster Parameter Group trong Type. Nhập rds-para-group trong Group Name. Nhập rds-para-group trong Description. Xem lại record "
+},
+{
+	"uri": "/vi/4-s3log/4.1-updateiamrole/",
+	"title": "Tạo subnet group and parameter group",
+	"tags": [],
+	"description": "",
+	"content": "Tạo subnet group Đi tới ElastiCache Trong ElastiCache dashboard\nClick Subnet groups. Click Create subnet group. Trong trang Create subnet group\nNhập memcache-subnet-group trong Subnet group settings. Nhập memcache-subnet-group trong Description. Chọn fcj-workshop. Chọn Manage và tick 3 private subnets. Click Create Xem lại cấu hình Tạo parameter group Trong ElastiCache dashboard Click Parameter groups. Click Create parameter group. Trong Create parameter group dashboard Nhập memcache-para-group trong Name. Nhập memcache-para-group trong Description. Chọn memcached1.6 trong Family. Click Create. Review "
+},
+{
+	"uri": "/vi/2-prerequiste/2.1-createec2/2.1.1-createvpc/",
+	"title": "Tạo VPC",
+	"tags": [],
+	"description": "",
+	"content": "Tạo VPC Lab VPC Đi tới VPC service management console Chọn Your VPC. Chọn Create VPC. Tại Create VPC. Trong Resource to create, click VPC only Trong Name tag, nhập fcj-workshop. Trong IPv4 CIDR, nhập: 10.10.0.0/16. Click Create VPC. Tại Your VPC.\nClick Action Click Edit VPC settings Tại Edit VPC settings\nTick Enable DNS hostnames Click Save "
+},
+{
+	"uri": "/vi/2-prerequiste/",
+	"title": "Chuẩn bị",
+	"tags": [],
+	"description": "",
+	"content": "\rTrong phòng thực hành này, bạn cần mua tên miền trên GoDaddy hoặc bất kỳ nhà cung cấp DNS nào. Hơn nữa, Apache Maven được yêu cầu để xây dựng tạo phẩm của ứng dụng web.\nContent Set up VPC Deploy SSL/TLS Certificate "
+},
+{
+	"uri": "/vi/4-s3log/4.2-creates3bucket/",
+	"title": "Tạo Memcache cluster",
+	"tags": [],
+	"description": "",
+	"content": "Ở bước này, ta sẽ tạo Memcache cluster trên các Availability Zones.\nTrong Amazon ElastiCache\nChọn Memached caches. Click Create Memcached cache. Trong Cluster settings page\nChọn Design your own cache. Chọn Standard create. Chọn AWS Cloud. Trong Cluster info\nNhập memcache-cluster trong Name và Description. Trong Cluster settings\nChọn 1.6.22 cho Engine version. Ở Parameter groups, chọn memcache-para-group. Chọn cache.t2.micro trong Note type. Nhập 3 trong Number of nodes. Trong Subnet group settings\nChọn Choose existing subnet group. Trong Subnet groups, chọn memcache-subnet-group. Click Next. Xem lại cấu hình\nXem lại cấu hình, kéo xuống cuối trang và click Next. "
+},
+{
+	"uri": "/vi/2-prerequiste/2.1-createec2/2.1.2-createprivatepublicsubnet/",
+	"title": "Tạo Private &amp; Public Subnets",
+	"tags": [],
+	"description": "",
+	"content": "Tạo Public Subnet Click Subnets. Click Create subnet. Ở Create subnet. Trong VPC ID, click fcj-workshop. Trong Subnet name, nhập public-subnet-1. Trong Availability Zone, chọn Availability Zone đầu tiên. Ở IPv4 CIRD block nhập 10.0.0.0/24. Thực hiện các bước còn lại như hình ở bên dưới. Scroll to the bottom of the page, click Create subnet. "
+},
+{
+	"uri": "/vi/3-accessibilitytoinstances/3.2-private-instance/",
+	"title": "Thiết lập Multi-AZ RDS cluster",
+	"tags": [],
+	"description": "",
+	"content": "Trong bước này, ta sẽ bắt đầu thiết lập Multi-AZ RDS cluster. Content: Tạo Multi-AZ RDS cluster Thiết lập dữ liệu MySQL "
+},
+{
+	"uri": "/vi/2-prerequiste/2.2-deployssllts/",
+	"title": "Triển khai SSL/TLS Certificate",
+	"tags": [],
+	"description": "",
+	"content": "Yêu cầu certificates Ở bước này, ta sẽ bắt đầu yêu cầu certificate.\nĐi tới Certificate Manager Ở phía bên trái, chọn List certificates\nChọn Request Ở trang Request certificate\nChọn Request a public certificate Chọn Next Tại Request public certificate Nhập *.yourdomainname Chọn DNS Validation Chọn RSA 2048 Chọn Request Chọn ID của certificate, bạn sẽ thấy CNAME name và CNAME value ở dưới góc bên phải, sao chép các giá trị đó Đi tới DNS Provider để thêm record, ở bài lab này ta sẽ sử dụng GoDaddy\nĐi tới your Domain Name Chọn CNAME type Thêm giá trị CNAME name cho Name và CNAME value cho Value đã được xóa đi dấu chấm ở cuối cùng. Chọn save Trở về lại List certificates của Certificate Manager service, chờ cho đến khi Status thành Issued "
+},
+{
+	"uri": "/vi/2-prerequiste/2.1-createec2/2.1.4-reviewvpc/",
+	"title": "Review",
+	"tags": [],
+	"description": "",
+	"content": "Tạo Private Subnet In VPC dashboard Click Your VPCs. Chọn fcj-workshop VPC. Click Resource map, đây là kiến trúc của VPC đã tạo. "
+},
+{
+	"uri": "/vi/2-prerequiste/2.3-createbastion/",
+	"title": "Tạo bastion host và security group",
+	"tags": [],
+	"description": "",
+	"content": "Tạo Security Group Chọn EC2 console và chọn Security Groups Chọn Security groups và Tạo security group. Nhập backend-sg ở cả Name và Description. Chọn fcj-workshop. Trong Trongbound rules, chọn SSH với nguồn là My IP. Chọn Security group. Chọn Edit Trongbound rules. Chọn Delete và Add rule. Chọn All traffic và chọn the security group của chính nó trong Source. Chọn Save rules. Tạo Bastion host Trong bước này, ta sẽ bắt đầu tạo Security group cho backend services và Bastion host để kết nối đến mySQL server.\nChọn EC2 console và Chọn Launch Instance Nhập bastion trong Name và tags, chọn Ubuntu 22.04 LTS. Trong Instance type chọn t2.micro Chọn Tạo new key pair Nhập workshop-keypair trong Key pair name, chọn RSA và pem cho Private key format. Chọn Tạo key pair. Trong Network settTronggs\nChọn fcj-workshop cho VPC. Chọn Public subnet 1 trong Subnets. Chọn Enable cho Auto-assign public IP. Trong Security group name, nhập Bastion-sg. Chọn Launch Trongstance. Chọn the Security Groups trong EC2 dashboard\nTick backend-sg security group. Chọn Edit Trongbound rules. Chọn Add rule, chọn All traffic với source là security group của bastion host. Kết nối đến Instance bằng cách copy dòng lệnh dưới và thực thi trong terminal: "
+},
+{
+	"uri": "/vi/2-prerequiste/2.1-createec2/2.1.3-createigwroutable/",
+	"title": "Tạo Internet Gateway &amp; Route Table",
+	"tags": [],
+	"description": "",
+	"content": "Tạo Private Subnet Click Internet gateways. Click Create internet gateway. Ở Create internet gateway Ở Name tag, chọn fcj-workshop-igw. Click Create internet gateway. Ở VPC dashboard Click Route tables. Click Create route table. Ở Create route table Nhập fcj-workshop-rtb. Ở mục VPC, chọn fcj-workshop. Click Create route table. Ở mục Details của route table Click Edit routes Ở Edit routes Chọn Add route để thêm một route mới. Chọn ID của fcj-workshop-igw internet gateway. Click Save changes. Ở Route tables Click Action. Click Edit subnet associations để gắn route table vào các public subnets. Tại Edit subnet associations Chọn cả 3 public subnets. Click Save associations. "
+},
+{
+	"uri": "/vi/3-accessibilitytoinstances/",
+	"title": "Thiết lập cụm Multi-AZ RDS",
+	"tags": [],
+	"description": "",
+	"content": "Trong bài lab này, chúng tôi sẽ thiết lập cụm Multi-AZ RDS với ba cơ sở dữ liệu. Cơ sở dữ liệu đầu tiên được gọi là Writer DB, trong khi các cơ sở dữ liệu khác là Reader RDS. Cụ thể, Writer DB sao chép dữ liệu sang cả hai Reader DB bằng cách sử dụng khả năng sao chép gốc của công cụ DB. Khi một thay đổi được thực hiện trên phiên bản DB của trình ghi, thay đổi đó sẽ được gửi đến từng DB instance của trình đọc. Để biết thông tin chi tiết, bạn có thể xem thêm tại. Content 3.1. Tạo subnet và parameter groups 3.2. Thiết lập RDS cluster\n"
+},
+{
+	"uri": "/vi/4-s3log/",
+	"title": "Set up Memcache cluster cluster",
+	"tags": [],
+	"description": "",
+	"content": "Trong phần này, chúng ta sẽ thiết lập Memcache trong dịch vụ Elasticache.\nCụm Memcached đề cập đến một tập hợp các nút ElastiCache gắn kết hoạt động cùng nhau. Dữ liệu được chia cho các nút trong cụm Memcached. Một số hành động trong ElastiCache được thiết kế riêng cho các cụm: + Thành lập cụm + Điều chỉnh cụm + Xóa một cụm + Kiểm tra các thành phần trong một cụm + Bao gồm hoặc loại bỏ các thẻ phân bổ chi phí cho một cụm\nNội dung: - [Tạo subnet và parameter group](./4.1-updateiamrole/)\r- [Thiết lập cụm **Memacached**](./4.2-creates3bucket/) "
+},
+{
+	"uri": "/vi/5-portfwd/",
+	"title": "Thiết lập cụm Amazon MQ",
+	"tags": [],
+	"description": "",
+	"content": "Với cụm Amazon MQ, mỗi nút RabbitMQ có thể chia sẻ người dùng, hàng đợi và trạng thái phân tán trên nhiều Availability Zones (AZ). Trong phần này, chúng tôi sẽ triển khai ba nodes Amazon MQ trên các Availability Zones.\nTạo cụm Amazon MQ Create Amazon MQ Broker cluster Đi tới Amazon MQ Trên Amazon MQ dashboard\nChọn Brokers. Chọn Create brokers. Trong trang Create RabbitMQ brokers\nChọn RabbitMQ. Chọn Next. Trong Select deployment mode\nChọn vùng Cluster deployment. Chọn Next. Trong Configure settings và RabbitMQ access\nNhập rabbit-mq. Chọn mq.m5.large. Chọn Next. Xem lại cấu hình\nXem lại cấu hình và kéo xuống dưới màn hình, chọn Create Broker. "
+},
+{
+	"uri": "/vi/6-beanstalk/",
+	"title": "Create and configure Beanstalk",
+	"tags": [],
+	"description": "",
+	"content": "Trong bài lab này, ta sẽ triển khai và cấu hình Beanstalk để triển khai EC2s, Auto Scaling, Application Load Balancer và S3 services. Với Beanstalk, bạn có thể triển khai và quản lý ứng dụng web mà không cần phải quan tâm tới hạ tầng. Hơn nữa, Beanstalk cũng giảm thiểu phần nào độ phức tạp quản lý.\nTạo IAM role Đi tới the IAM console\nChọn Roles. Chọn the role name aws-elasticbeanstalk-service-role, Chọn Delete. Chọn Roles và Create role Triển khai và cấu hình Beanstalk Đi tới the Beanstalk console.\nChọn Environments. Chọn Create environments. Trong Select trusted entity\nChọn AWS service. Chọn vùng EC2 in Use Case. Chọn 4 policies như bên dưới, chọn Next Tại trang Name, review and create\nNhập beanstalk-role trong Role name và Description. Chọn Create role. Ở Configure service access\nChọn Create and use new service role trong Service role. Trong Service role name, nhập aws-elasticbeanstalk-service-role. Trong EC2 key pair, chọn wokrshop-keypair. Chọn Next. Trong Virtual Private Cloud\nChọn fcj-workshop VPC. Chọn Create. Tại vùng Capacity\nChọn Load balanced. Nhập 3 và 6 đối với Min and Max lần lượt. Trong Instance types và Scaling triggers\nChọn t2.micro. Chọn CPUUtiliaztion. Chọn Next. Trong Rolling updates and deployments\nChọn Rolling trong Deploy policy. Tại Batch size type, chọn Percentage. Nhập 50 trong Deployment batch size. Chọn Next. Xem lại cấu hình, Chọn Submit Configure S3 Đi tới the S3 console.\nChọn Environments. Chọn elasticbeanstalk \u0026hellip;. Chọn Permissions tab\nChọn ACLs enabled. Chọn Save changes. Triển khai web application và kết nối các backend services Đi tới the EC2 console.\nChọn Environments. Sao chép Security Group ID của Beanstalk\u0026rsquo;s EC2. Đi tới the Security Groups dashboard\nSelect backend-sg. Chọn Edit inbound rules. Chọn All traffic and dán Security group ID ta đã sao chép, chọn Save rules. Đi tới Beanstalk console\nChọn vùng Configuration. Chọn Action \u0026gt; Edit. Nhập /login trong mỵc Path. Chọn Enabled trong Session stickness. Chọn Save. Chọn Add Listener trong mục Listeners\nNhập 443. Chọn public certificate đã được tạo ở Certificate Manager và ấn Save. Roll to the bottom of thep page and Chọn Apply. Mở Visual Code IDE or hoặc các IDE khác\nỞ thanh tìm kiếm, dán Repository link để download repository về. Mở terminal lên, kiểm tra phiên bản mvn bằng cách sử dụng câu lệnh mvn \u0026ndash;version. Đi tới vprofile-project/src/resources/application.properties\nNhập Master endpoint, Master user, và Password mà chúng ta đã lưu sau khi tạo RDS cluster, ElastiCache, Amazon MQ Nhập mvn install trên terminal. Kiểm tra artifact Đi tới the Beanstalk console\nChọn Upload and deploy. Trong Choose file, up lên Artifact mà ta đã build. Chọn Deploy. Chờ khoảng vài phút rồi kiểm tra trạng thái. Kiểm tra việc triển khai web app\nChọn Domain. Nhập admin_vp cho cả username và password. Chọn Login. Thiết lập SSL/TLS và tên miền cho web app Đi tới GoDaddy hoặc các nhà cung cấp tên miền khác Chọn DNS. Chọn Add a new record. Chọn CNAME, nhập fcj trong Name và dán Domain in Beanstalk console. Xác thực chứng chỉ bằng cách nhập tên miền của bạn trên web browser và chọn icon như bên dưới: "
+},
+{
+	"uri": "/vi/7-cloudfront/",
+	"title": "Cấu hình CloudFront",
+	"tags": [],
+	"description": "",
+	"content": "Amazon CloudFront là một dạng của Content Delivery Network (CDN) giúp tăng tốc việc upload các website tĩnh hoặc động (html, css, javascript) tới các người dùng. CloudFront phân bố nội dung của bạn trên khắp thế giới thông qua data centers, được gọi là Edge Location.\nTăng tốc hiệu suất của việc đọc dữ liệu bằng cách cache ở Edge Location.Increase the performance of reading data by caching in Edge Location. Hiện tại có 216 Edge Locations trên khắp thế giới. Trong bài lab này, chúng ta sẽ thiếp lập và kết nối CloudFront để tăng tốc tốc độ upload của website.\nĐi tới CloudFront console. Chọn Create distribution. Tại Origin domain, chọn awsweb \u0026hellip;. Chọn lựa chọn cuối Allowed HTTP methods. Trong Headers, Query strings, Cookies, chọn All. Trong Web Application Firewall (WAF), chọn Do not enable security protections. Trong Custom SSL certificate, chọn certificate đã được tạo ở Certificate Mnanager. Trong Security Policy, chọn TLSv1. Chọn Create distribution. Sao chép Distribution domain name. Đi tới GoDaddy hoặc các nhà cung cấp tên miền khác, chọn CNAME, nhập fcjfront trong Name và dán giá trị Distribution domain name cho Value Click Save. Kiểm tra website bằng cách nhập tên miền vừa thiết lập trên web browser. "
+},
+{
+	"uri": "/vi/8-cleanup/",
+	"title": "Xóa tài nguyên",
+	"tags": [],
+	"description": "",
+	"content": "Chúng ta sẽ xóa các tài nguyên đã tạo trong bài lab này.\nXóa EC Đi tới EC2 service management console Chọn Instances. Chọn bastions host. Chọn Instance state. Chọn Terminate instance. Sau đó chọn Terminate để xác nhận. Delete IAM role Đi tới IAM service management console Chọn Roles. Chọn tên role aws-elasticbeanstalk-service-role. Chọn Delete, và nhập tên role aws-elasticbeanstalk-service-role và chọn Delete to để xóa role. Disable CloudFront Đi tới CloudFront console Chọn instance trong Distributions dashboard. Chọn Disable. Xóa Multi-AZ cluster Đi tới RDS console Chọn Databases section. Tick db-cluster. Chọn Action \u0026gt; Delete. Tick I acknowledege \u0026hellip;. Nhập Delete me. Chọn Delete DB cluster. Xóa ElastiCache cluster Đi tới ElastiCache console Chọn memcache-cluster instance. Action \u0026gt; Delete. Enter memcache-cluster. Chọn Delete. Xóa Amazon MQ cluster Đi tới Amazon MQ console\nChọn memcache-cluster instance. Action \u0026gt; Delete. Chọn Delete. Đi tới Security Groups trong EC2\nChọn backend-sg. Action \u0026gt; Delete. Tắt Beanstalk service Đi tới Beanstalk console Chọn Beanapp-evn instance. Action \u0026gt; Terminate environment. Nhập Beanapp-env, sau đó chọn Terminate. "
+},
+{
+	"uri": "/vi/categories/",
+	"title": "Categories",
+	"tags": [],
+	"description": "",
+	"content": ""
+},
+{
+	"uri": "/vi/tags/",
+	"title": "Tags",
+	"tags": [],
+	"description": "",
+	"content": ""
+}]

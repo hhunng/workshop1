@@ -1,0 +1,169 @@
+[
+{
+	"uri": "/",
+	"title": "Build a highly available PaaS with beanstalk service for a web application",
+	"tags": [],
+	"description": "",
+	"content": "Build a highly available PaaS with beanstalk service for a web application Overall In this lab, you will learn to implement a highly available PaaS for a web application by using Beanstalk, CloudFront, S3, Certificate Manager, Multi-AZ RDS, Amazon MQ, and Elasticache Cluster. Content Introduction Preparation Set up Multi-AZ RDS cluster Set up Memcache cluster Set up Amazon MQ cluster Create and configure Beanstalk Configure CloudFront Clean up resources "
+},
+{
+	"uri": "/3-accessibilitytoinstances/3.2-private-instance/3.2.1-setuprdscluster/",
+	"title": "Create Multi-AZ RDS cluster",
+	"tags": [],
+	"description": "",
+	"content": " In Amazon RDS dashboard\nClick Databases. Click Create database. In Choose a data creation method\nSelect Standard create. Select MySQL in Engine Options. Choose MySQL 8.0.35. In Templates, opt for Dev/Test field. In Availability and durability and Settings.\nSelect Multi-AZ cluster. Enter db-cluster. Enter admin for Master username field. Tick Auto generate a password. In Instance configuration\nSelect m5d.large Enter 20 in Allocated Storage. In Connectivity field\nSelect Don\u0026rsquo;t connect to EC2 compute resource. Choose fcj-workshop. Select rds-subnet-group in the DB subnet group section. In Public access, select No. In VPC security group (firewall) section\nClick Create new. Enter backend-sg. In Additional configuration\nSelect rds-para-group. Opt for Enable automated backups in Backup section. In Log exports\nTick all the options. Click Create database. In Databases dashboard\nClick View credential details. Copy those three fields and save in note. "
+},
+{
+	"uri": "/3-accessibilitytoinstances/3.1-public-instance/",
+	"title": "Create subnet &amp; parameter groups",
+	"tags": [],
+	"description": "",
+	"content": "Create subnet group Go to RDS At the Amazon RDS dashboard\nClick Subnet groups section. Click Create DB subnet group. At the Amazon RDS dashboard\nEnter rds-subnet-group in Name field. Enter rds-subnet-group in Description field. Select fcj-workshop in VPC section. Enlist us-east-1a, us-east-1b, us-east-1c in Availability Zones field. In Subnets, choose the three private subnets. Click Create. Check the Status field Create parameter group Go to Pramater groups page Click Create parameter group In the Create parameter group page\nChoose mysql8.0 in Paramter group family. Choose DB Cluster Parameter Group in Type. Enter rds-para-group in Group Name. Enter rds-para-group in Description. Review the record "
+},
+{
+	"uri": "/4-s3log/4.1-updateiamrole/",
+	"title": "Create subnet group and parameter group",
+	"tags": [],
+	"description": "",
+	"content": "Create subnet group Go to ElastiCache In ElastiCache dashboard\nClick Subnet groups. Click Create subnet group. In the Create subnet group page\nEnter memcache-subnet-group in Subnet group settings. Enter memcache-subnet-group in Description. Select the fcj-workshop in VPC ID field Select Manage and tick the three private subnets Click Create Review the configuration Create parameter group In ElastiCache dashboard Click Parameter groups field. Click Create parameter group. In Create parameter group dashboard Enter memcache-para-group in Name field. Enter memcache-para-group in Description. Select memcached1.6 in Family section. Click Create. Review "
+},
+{
+	"uri": "/2-prerequiste/2.1-createec2/2.1.1-createvpc/",
+	"title": "Create VPC",
+	"tags": [],
+	"description": "",
+	"content": "Create VPC Lab VPC Go to VPC service management console Click Your VPC. Click Create VPC. At the Create VPC page. In the Resource to create, click VPC only In the Name tag field, enter fcj-workshop. In the IPv4 CIDR field, enter: 10.10.0.0/16. Click Create VPC. At Your VPC page.\nClick Action Click Edit VPC settings At Edit VPC settings\nTick Enable DNS hostnames Click Save "
+},
+{
+	"uri": "/1-introduce/",
+	"title": "Introduction",
+	"tags": [],
+	"description": "",
+	"content": "Platform as a Service is used to eliminate the need for organizations to manage the underlying infrastructure, typically hardware and operating systems. Instead, it allows you to concentrate on deploying and managing your applications. This improves efficiency as you no longer need to concern yourself with tasks such as resource procurement, capacity planning, software maintenance, patching, or any other undifferentiated heavy lifting associated with application management. Consequently, in this lab, we will take steps to deploy a web application using Elastic Beanstalk, which is the best example to demonstrate the features of PaaS.\nAmazon CloudFront is a form of Content Delivery Network (CDN) that helps speed up the loading of a static or dynamic website (html, css, javascript) to your users. CloudFront distributes your content across the world\u0026rsquo;s internet through data centers called Edge locations.\nIncrease the performance of reading data by caching in Edge Location. Currently, there are 216 Edge Locations in worldwide. Furthermore, we want to ensure high availability and fast response for the user. Therefore, we have implemented Multi-AZ RDS, Amazon MQ, and an Elasticache cluster in this lab. Meanwhile, Certificate Manager service is applied to provision, manage, and deploy public and private SSL/TLS certificates for use with AWS services and your internal connected resources.\n"
+},
+{
+	"uri": "/2-prerequiste/2.1-createec2/",
+	"title": "Preparing VPC",
+	"tags": [],
+	"description": "",
+	"content": "In this step, we will need to create a VPC with six subnets, where the first three subnets are public and the remaining ones are private.\nThe architecture overview after you complete this step will be as follows:\nTo learn how to create EC2 instances and VPCs with public/private subnets, you can refer to the lab:\nAbout Amazon EC2 Works with Amazon VPC Content Create VPC Create Public \u0026amp; Private Subnets Create Internet Gateway \u0026amp; Route Table Review "
+},
+{
+	"uri": "/3-accessibilitytoinstances/3.2-private-instance/3.2.2-buildata/",
+	"title": "Set up data in MySQL",
+	"tags": [],
+	"description": "",
+	"content": " Create database Update and download MySQL client sudo apt update \u0026amp;\u0026amp; sudo apt install mysql-client -y Connect to the RDS Master and create the database, all the parameters are from the note we took before mysql -h \u0026lt;Endpoint\u0026gt; -u \u0026lt;Master username\u0026gt; -p\u0026lt;Master Password\u0026gt; After connecting the RDS Master, type those commands mysql\u0026gt; CREATE DATABASE accounts; mysql\u0026gt; Exit Clone the data to RDS Clone this respository to the Bastion Host by using this command git clone https://github.com/hkhcoder/vprofile-project.git Finally, clone the data to RDS by copy this mySQL script using the command below mysql -h \u0026lt;Endpoint\u0026gt; -u \u0026lt;Master username\u0026gt; -p\u0026lt;Master Password\u0026gt; \u0026lt;database-name\u0026gt; \u0026lt; vprofile-project/src/main/resources/db_backup.sql "
+},
+{
+	"uri": "/4-s3log/4.2-creates3bucket/",
+	"title": "Create Memcache cluster",
+	"tags": [],
+	"description": "",
+	"content": "In this step, we will create Memcache cluster accross Availability Zones.\nIn the Amazon ElastiCache\nSelect Memached caches. Click Create Memcached cache. In the Cluster settings page\nSelect Design your own cache. Select Standard create. Select AWS Cloud. In the Cluster info section\nEnter memcache-cluster in Name and Description. In the Cluster settings section\nSelect 1.6.22 for Engine version. In Parameter groups, select memcache-para-group. Select cache.t2.micro in Note type field. Enter 3 in Number of nodes. In the Subnet group settings section\nChoose Choose existing subnet group. In Subnet groups, pick memcache-subnet-group. Click Next. Review the configuration\nReview the configuration, roll to the bottom and click Next. "
+},
+{
+	"uri": "/2-prerequiste/2.1-createec2/2.1.2-createprivatepublicsubnet/",
+	"title": "Create Private &amp; Public Subnets",
+	"tags": [],
+	"description": "",
+	"content": "Create Public Subnet Click Subnets. Click Create subnet. At the Create subnet page. In the VPC ID section, click fcj-workshop. In the Subnet name field, enter public-subnet-1. In the Availability Zone section, select the first Availability zone. In the field IPv4 CIRD block enter 10.0.0.0/24. Implement the rest of the subnets by following steps. Scroll to the bottom of the page, click Create subnet. "
+},
+{
+	"uri": "/2-prerequiste/2.2-deployssllts/",
+	"title": "Deploy SSL/TLS Certificate",
+	"tags": [],
+	"description": "",
+	"content": "Request certificates In this step, we will proceed to request a certificate.\nGo to Certificate Manager In the left navigation bar, click List certificates\nClick Request At the Request certificate page\nChoose Request a public certificate Click Next At Request public certificate Enter *.yourdomainname Select DNS Validation Select RSA 2048 Click Request Click the ID of the certificate, you will see the CNAME name and CNAME value fields in the bottom right-hand corner. You need to copy those ones Go to DNS Provider to add that record, in this lab we will use GoDaddy\nGo to your Domain Name Select CNAME type Add CNAME name value to the Name field and CNAME value to the Value field without including the last dot. Click save Go back to the List certificates of the Certificate Manager service, wait until the Status is Issued "
+},
+{
+	"uri": "/2-prerequiste/",
+	"title": "Preparation",
+	"tags": [],
+	"description": "",
+	"content": "\rIn this lab, you need to purchase Domain Name on GoDaddy or any DNS provider. Furthermore, Apache Maven is required to build the artifact of the web application.\nContent Set up VPC Deploy SSL/TLS Certificate "
+},
+{
+	"uri": "/3-accessibilitytoinstances/3.2-private-instance/",
+	"title": "Set up Multi-AZ RDS cluster",
+	"tags": [],
+	"description": "",
+	"content": "In this step, we will implement to create Multi-AZ RDS cluster. Content: Create Multi-AZ RDS cluster Set up data in MySQL "
+},
+{
+	"uri": "/2-prerequiste/2.3-createbastion/",
+	"title": "Create bastion host and security group",
+	"tags": [],
+	"description": "",
+	"content": "Create Security Group Go to EC2 console and click Security Groups Click Security groups and Create security group. Enter backend-sg in both Name and Description. Select fcj-workshop. In Inbound rules, select SSH with the source is My IP. Click Security group. Click Edit inbound rules. Click Delete and Add rule. Select All traffic then click the security group itself in the Source. Click Save rules. Create Bastion host instance In this step, we will proceed to create a Security group for backend services and a Bastion host instance in order to connect to the mySQL server.\nGo to EC2 console and click Launch instance Enter bastion in Name and tags field, choose Ubuntu 22.04 LTS. In the Instance type choose t2.micro Click Create new key pair Enter workshop-keypair in Key pair name field, click RSA and pem for Private key format. Click Create key pair. In Network settings field\nSelect fcj-workshop for VPC. Choose Public subnet 1 in Subnets. Click Enable for Auto-assign public IP. In the Security group name, enter Bastion-sg. Click Launch Instance. Click the Security Groups in EC2 dashboard\nTick backend-sg security group. Click Edit inbound rules. Click Add rule, select All traffic with the source is the security group of the bastion host. Connect the instance by copy the command below: "
+},
+{
+	"uri": "/2-prerequiste/2.1-createec2/2.1.3-createigwroutable/",
+	"title": "Create Internet Gateway &amp; Route Table",
+	"tags": [],
+	"description": "",
+	"content": "Create Private Subnet Click Internet gateways. Click Create internet gateway. At the Create internet gateway page. In the Name tag, enter fcj-workshop-igw Click Create internet gateway At the VPC dashboard Click Route tables section Click Create route table At the Create route table Enter fcj-workshop-rtb In VPC section, select fcj-workshop Click Create route table At the details of the routable Click Edit routes At the Edit routes page ClicK Add route to add a new route Select the ID of fcj-workshop-igw internet gateway Click Save changes At the Route tables page Click Action Click Edit subnet associations to attach the route tables to the public subnets At Edit subnet associations section Select the three public subnets Click Save associations "
+},
+{
+	"uri": "/2-prerequiste/2.1-createec2/2.1.4-reviewvpc/",
+	"title": "Review",
+	"tags": [],
+	"description": "",
+	"content": "Create Private Subnet In VPC dashboard Click Your VPCs Choose the fcj-workshop VPC Click the Resource map, this is the architecture of our VPC "
+},
+{
+	"uri": "/3-accessibilitytoinstances/",
+	"title": "Set up Multi-AZ RDS cluster",
+	"tags": [],
+	"description": "",
+	"content": "In this lab, we will set up Multi-AZ RDS cluster with three databases. The first database is so-called Writer DB instance, when the others are Reader RDS instances. Specifically, the Writer DB instance replicates data to both of the reader DB instances using the DB engine\u0026rsquo;s native replication capabilities. When a change is made on the writer DB instance, it\u0026rsquo;s sent to each reader DB instance. For details, you can explore this document. Content 3.1. Create subnet and parameter groups 3.2. Set up RDS cluster\n"
+},
+{
+	"uri": "/4-s3log/",
+	"title": "Set up Memcache cluster cluster",
+	"tags": [],
+	"description": "",
+	"content": "In this section, we will set up Memcache in Elasticache service.\nA Memcached cluster refers to a cohesive collection of ElastiCache nodes that work together. The data is divided among the nodes within the Memcached cluster. Several actions in ElastiCache are specifically designed for clusters:\nEstablishing a cluster Adjusting a cluster Eradicating a cluster Examining the components within a cluster Including or eliminating cost allocation tags for a cluster Content: Create subnet group and parameter group Set up Memacached cluster "
+},
+{
+	"uri": "/5-portfwd/",
+	"title": "Set up Amazon MQ cluster",
+	"tags": [],
+	"description": "",
+	"content": "With the Amazon MQ cluster, each node of the three RabbitMQ brokers can share users, queues, and a distributed state accross multiple Availability Zones (AZ). In this section, we will implement three Amazon MQ Brokers accross the Availability Zones.\nCreate Amazon MQ Broker cluster Go to Amazon MQ In Amazon MQ dashboard\nClick Brokers. Click Create brokers. In Create RabbitMQ brokers page\nChoose RabbitMQ. Click Next. In Select deployment mode\nClick Cluster deployment field. Click Next. In Configure settings and RabbitMQ access\nEnter rabbit-mq. Select mq.m5.large. Click Next. Review the configuration\nReview and roll down to the bottom, click Create Broker. "
+},
+{
+	"uri": "/6-beanstalk/",
+	"title": "Create and configure Beanstalk",
+	"tags": [],
+	"description": "",
+	"content": "In this implementation, we will create and configure Beanstalk to deploy EC2s, Auto Scaling, Application Load Balancer and S3 services. With Beanstalk, you can quickly deploy and manage web applications without having to concern about the infrastructure. Furthermore, Beanstalk also reduces the management complexity.\nCreate IAM role Go to the IAM console\nClick Roles. Tick the role name aws-elasticbeanstalk-service-role, click Delete. Click Roles and then Create role Create and configure Beanstalk Go to the Beanstalk console.\nClick Environments. Click Create environments. In the Select trusted entity\nSelect AWS service. Opt for EC2 in Use Case field. Tick the four policy as below, click Next In the Name, review and create page\nEnter beanstalk-role in Role name and Description. Click Create role. In the Configure service access\nClick Create and use new service role in Service role. In Service role name, enter aws-elasticbeanstalk-service-role. In EC2 key pair, select wokrshop-keypair. Click Next. In Virtual Private Cloud\nSelect fcj-workshop VPC. Click Create. In Capacity field\nChoose Load balanced. Enter 3 and 6 for Min and Max respectively. In Instance types and Scaling triggers fields\nPick t2.micro. Choose CPUUtiliaztion. Click Next. In Rolling updates and deployments field\nChoose Rolling in Deploy policy. At Batch size type, choose Percentage. Enter 50 in Deployment batch size. Click Next. Review the configuration, click Submit Configure S3 Go to the S3 console.\nClick Environments. Click elasticbeanstalk \u0026hellip;. Click Permissions tab\nClick ACLs enabled. Click Save changes. Deploy web application and connect backend services Go to the EC2 console.\nClick Environments. Copy the Security Group ID of the Beanstalk\u0026rsquo;s EC2. Go to the Security Groups dashboard\nSelect backend-sg. Click Edit inbound rules. Select All traffic and paste the Security group ID we have copied, click Save rules. Go to the Beanstalk console\nClick Configuration section. Click Action \u0026gt; Edit. Enter /login in Path field. Tick the Enabled in Session stickness. Click Save. Click Add Listener in Listeners section\nEnter 443. Select the public certificate that we created in Certificate Manager and click Save. Roll to the bottom of thep page and click Apply. Open the Visual Code IDE or any other IDE\nAt the search bar, paste this Repository link to clone the repository. Open the terminal, check the mvn version by using mvn \u0026ndash;version command. Go to vprofile-project/src/resources/application.properties\nEnter the Master endpoint, Master user, and Password that we saved after we had created RDS cluster, ElastiCache, Amazon MQ Enter mvn install in the terminal. Verify the artifact built Go to the Beanstalk console\nClick Upload and deploy. In Choose file, upload the artifact we have built. Click Deploy. Wait for few minutes to continue testing. Test the web application deployment\nClick the Domain. Enter admin_vp as username and password. Click Login. Set up SSL/TLS and domain name for the web application Go to the GoDaddy or any other providers Click DNS. Click Add a new record. Choose CNAME, enter fcj in Name field and paste the Domain in Beanstalk console. Verify the certificate by enter your new domain name in web browser and click to the icon as the image below: "
+},
+{
+	"uri": "/7-cloudfront/",
+	"title": "Configure CloudFront",
+	"tags": [],
+	"description": "",
+	"content": "Amazon CloudFront is a form of Content Delivery Network (CDN) that helps speed up the loading of a static or dynamic website (html, css, javascript) to your users. CloudFront distributes your content across the world’s internet through data centers called Edge locations.\nIncrease the performance of reading data by caching in Edge Location. Currently, there are 216 Edge Locations in worldwide. In this lab, we will set up and configure CloudFront to speed up the loading of our website.\nGo to the CloudFront console. Click Create distribution. In Origin domain, select awsweb \u0026hellip;. Select the last option in Allowed HTTP methods. In Headers, Query strings, Cookies, select All. In Web Application Firewall (WAF), click Do not enable security protections. In Custom SSL certificate, choose your certificate that was created in Certificate Mnanager. In Security Policy, select TLSv1. Click Create distribution. Copy the Distribution domain name. Go to GoDaddy or any domain name provider, select CNAME, enter fcjfront in Name field and paste the value of Distribution domain name to the Value field. Click Save. Test the website by enter the new domain name in browser. "
+},
+{
+	"uri": "/8-cleanup/",
+	"title": "Clean up resources",
+	"tags": [],
+	"description": "",
+	"content": "We will take the following steps to delete the resources we created in this exercise.\nDelete EC2 instance Go to EC2 service management console Click Instances. Select bastions host. Click Instance state. Click Terminate instance. Then click Terminate to confirm. Delete IAM role Go to IAM service management console Click Roles. Tick the role name aws-elasticbeanstalk-service-role. Click Delete, then enter the role name aws-elasticbeanstalk-service-role and click Delete to delete the role. Disable CloudFront Go to CloudFront console Tick the instance in Distributions dashboard. Click Disable. Delete Multi-AZ cluster Go to RDS console Click Databases section. Tick db-cluster. Click Action \u0026gt; Delete. Tick I acknowledege \u0026hellip;. Enter Delete me. Click Delete DB cluster. Delete ElastiCache cluster Go to ElastiCache console Click memcache-cluster instance. Action \u0026gt; Delete. Enter memcache-cluster. Click Delete. Delete Amazon MQ cluster Go to Amazon MQ console\nClick memcache-cluster instance. Action \u0026gt; Delete. Click Delete. Go to Security Groups section in EC2\nClick backend-sg. Action \u0026gt; Delete. Terminate Beanstalk service Go to Beanstalk console Click Beanapp-evn instance. Action \u0026gt; Terminate environment. Enter Beanapp-env, then click Terminate. "
+},
+{
+	"uri": "/categories/",
+	"title": "Categories",
+	"tags": [],
+	"description": "",
+	"content": ""
+},
+{
+	"uri": "/tags/",
+	"title": "Tags",
+	"tags": [],
+	"description": "",
+	"content": ""
+}]
